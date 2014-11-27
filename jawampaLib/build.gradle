@@ -1,0 +1,28 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "20.0.0"
+
+    defaultConfig {
+        applicationId "ws.wamp.jawampa"
+        minSdkVersion 8
+        targetSdkVersion 19
+    }
+
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:+'
+    compile files('libs/jackson-annotations-2.4.3.jar')
+    compile files('libs/jackson-core-2.4.3.jar')
+    compile files('libs/jackson-databind-2.4.2.jar')
+    compile files('libs/netty-all-4.0.24.Final.jar')
+    compile files('libs/rxjava-core-0.20.4.jar')
+}
