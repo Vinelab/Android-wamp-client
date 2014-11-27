@@ -4,6 +4,11 @@ android {
     compileSdkVersion 21
     buildToolsVersion '20.0.0'
 
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+
     defaultConfig {
         applicationId "android.apps.vinelab.com.javawamp2client"
         minSdkVersion 10
