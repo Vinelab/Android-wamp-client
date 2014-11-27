@@ -40,6 +40,10 @@ public class TestActivity extends Activity
         connectWampClient();
     }
 
+    /**
+     * Builds the Wamp client object, requests to open a session with the router
+     * and tracks the session status changes
+     */
     void connectWampClient()
     {
         try {
@@ -53,75 +57,51 @@ public class TestActivity extends Activity
             // a connection attempt
             client = builder.build();
 
-		   /* // Create a Status Observer to track the status of the WAMP connection
-		    Observable<Status> status = client.statusChanged();
-		    status.subscribe(new Observer<Status>() {
-				@Override
-				public void onCompleted() {
-					Log.i(LOG_WAMP, "onCompled");
-				}
-
-				@Override
-				public void onError(Throwable arg0) {
-					Log.i(LOG_WAMP, "onError");
-				}
-
-				@Override
-				public void onNext(Status arg0) {
-					Log.i(LOG_WAMP, "onNext");
-					if(arg0 == Status.Connected) {
-						Log.i(LOG_WAMP, "Connected");
-						requestComments();
-					}
-				}
-			});*/
-
+            // subscribe for session status changes
             client.statusChanged().subscribe(new Action1<WampClient.Status>() {
                 @Override
                 public void call(WampClient.Status t1) {
                     Log.i(LOG_WAMP,"Session status changed to " + t1);
 
                     if(t1 == WampClient.Status.Connected) {
+                        // once it's connected, subscribe to Add events and request the comments.
+                        setCommentsAddListener();
                         requestComments();
+                        // request to add a comment
+                        addComment("comment 1");
                     }
                 }
             });
             // request to open the connection with the server
             client.open();
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        catch (Exception e) {}
     }
 
+    /**
+     * Requests the Wamp client to make a call to get the comments for the current Post.
+     */
     void requestComments()
     {
         try {
-            JSONObject json = new JSONObject();
-            json.put("post_id", 52213);
+            String procedure = "comments.get";
 
             JsonNodeFactory jnf = new JsonNodeFactory(true);
             ObjectNode node = new ObjectNode(jnf);
-            node.put("post_id", 52213);
+            node.put("post_id", POST_ID);
             ArrayNode arrayNode = new ArrayNode(jnf);
 
-
-            Observable<Reply> observable = client.call("comments.get", arrayNode, node);
+            Observable<Reply> observable = client.call(procedure, arrayNode, node);
             observable.subscribe(new Action1<Reply>(){
                 @Override
                 public void call(Reply reply) {
-                    setCommentsAddListener();
-                    addComment("comment 1");
                     if(reply != null) {
                         ArrayNode arguments = reply.arguments();
                         String str = arguments.toString();
                         try {
                             JSONArray jsonArray = new JSONArray(str);
                             int count = jsonArray.length();
-                            if(count > 0) {
-
-                            }
-                            Log.i(LOG_WAMP, "comments.get call Json response: " + str);
+                            Log.i(LOG_WAMP, "comments.get call Json response: " + str + ", comments count=" + count);
                         }
                         catch (JSONException e) {}
                     }
@@ -135,29 +115,15 @@ public class TestActivity extends Activity
                 }
 
             });
-
-			/*client.call("comments.get", JSONObject.class, 52213).subscribe(new Action1<JSONObject>(){
-				@Override
-				public void call(JSONObject arg0) {
-					if(arg0 != null) {
-						Log.i(LOG_WAMP, "comments.get call Json response: " + arg0.toString());
-					}
-				}
-			}, new Action1<Throwable>(){
-				@Override
-				public void call(Throwable arg0) {
-					if(arg0 != null) {
-						Log.i(LOG_WAMP, "comments.get call Throwable response: " + arg0.toString());
-					}
-				}
-
-			});*/
         }
         catch (Exception e) {
             Log.i(LOG_WAMP, "requestComments Exception");
         }
     }
 
+    /**
+     * Makes a subscription on the Wamp client to received the comments add event on the current Post
+     */
     void setCommentsAddListener()
     {
         // comments.[post_id].add
@@ -186,43 +152,12 @@ public class TestActivity extends Activity
             }
 
         });
-
-		/*client.makeSubscription(procedure, String.class).subscribe(new Action1<String>() {
-			@Override
-			public void call(String arg0) {
-				if(arg0 != null) {
-					Log.i(LOG_WAMP, procedure + " call Json response: " + arg0.toString());
-				}
-			}
-
-		}, new Action1<Throwable>(){
-			@Override
-			public void call(Throwable arg0) {
-				if(arg0 != null) {
-					Log.i(LOG_WAMP, procedure + " call Throwable response: " + arg0.toString());
-				}
-			}
-
-		});*/
-
-		/*client.call(procedure, JSONObject.class, (Object) null).subscribe(new Action1<JSONObject>(){
-			@Override
-			public void call(JSONObject arg0) {
-				if(arg0 != null) {
-					Log.i(LOG_WAMP, procedure + " call Json response: " + arg0.toString());
-				}
-			}
-		}, new Action1<Throwable>(){
-			@Override
-			public void call(Throwable arg0) {
-				if(arg0 != null) {
-					Log.i(LOG_WAMP, procedure + " call Throwable response: " + arg0.toString());
-				}
-			}
-
-		});*/
     }
 
+    /**
+     * Requests the Wamp client to call comment.add in order to add a new comment on the current Post
+     * @param comment
+     */
     void addComment(String comment)
     {
         final String procedure = "comments.add";
