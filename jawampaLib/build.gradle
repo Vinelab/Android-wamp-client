@@ -5,14 +5,14 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "ws.wamp.jawampa"
+       /* applicationId "ws.wamp.jawampa"*/
         minSdkVersion 8
         targetSdkVersion 19
     }
 
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
